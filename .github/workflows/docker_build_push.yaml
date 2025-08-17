@@ -47,3 +47,33 @@ jobs:
           context: .
           tags: ${{ secrets.DOCKER_USERNAME }}/netology-static-app:${{ env.DOCKER_TAG }}
           push: true
+
+  deploy_to_kubernetes:
+    # Выполняется только при наличии тега
+    if: startsWith(github.ref, 'refs/tags')
+    needs: build_and_publish_docker_image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install YC CLI
+        run: |
+          curl -fsSL https://storage.yandexcloud.net/cloud-cli/latest/yc-linux-amd64.tar.gz | tar zxf -
+          sudo mv yc /usr/bin/
+          yc config set token ${{ secrets.YC_OAUTH_TOKEN }}
+          yc config set cloud-id ${{ secrets.YC_CLOUD_ID }}
+          yc config set folder-id ${{ secrets.YC_FOLDER_ID }}
+
+      - name: Download kubeconfig
+        run: |
+          yc managed-kubernetes cluster get-master-kubeconfig ${{ secrets.KUBE_CLUSTER_NAME }} > kubeconfig.yaml
+
+      - name: Replace placeholders in deployment.yaml
+        run: |
+          sed -i.bak "s/TEMPLATE_USERNAME/${{ secrets.DOCKER_USERNAME }}/g" deployment.yaml
+          sed -i.bak "s/TEMPLATE_TAG/${{ env.DOCKER_TAG }}/g" deployment.yaml
+
+      - name: Apply Kubernetes Manifest
+        run: |
+          kubectl apply -f deployment.yaml --kubeconfig=kubeconfig.yaml
