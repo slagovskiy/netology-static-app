@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: simple-app
-        image: TEMPLATE_USERNAME/netology-static-app:TEMPLATE_TAG
+        image: slagovskiy/netology-static-app:TEMPLATE_TAG
       restartPolicy: Always
 
 ---
