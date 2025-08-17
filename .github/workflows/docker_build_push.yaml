@@ -21,11 +21,20 @@ jobs:
         id: set_tag
         run: |
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            echo "::set-output name=tag::${{ github.sha }}"
+            # Берём первые 8 символов SHA-коммита
+            SHORT_SHA=${{ github.sha | truncate(8) }}
+            echo "TAG=$SHORT_SHA" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event_name }}" == "create" || "${{ startsWith(github.ref_type, 'tag') }}" == "true" ]]; then
-            echo "::set-output name=tag::${{ github.ref_name }}"
+            # Используем полное имя тега
+            echo "TAG=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "No valid event detected!"
           fi
+        shell: bash
 
+      - name: Show TAG Variable
+        run: echo "Final Tag ${{ steps.set_tag.outputs.TAG }}"
+  
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -42,5 +51,5 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          tags: ${{ secrets.DOCKER_USERNAME }}/netology-static-app:${{ steps.set_tag.outputs.tag }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/netology-static-app:${{ steps.set_tag.outputs.TAG }}
           push: true
