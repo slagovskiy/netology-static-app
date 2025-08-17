@@ -1,6 +1,7 @@
 <template>
   <div id="app">
     <CountDown />
+    <p>app version 1.0.2</p>
   </div>
 </template>
 
