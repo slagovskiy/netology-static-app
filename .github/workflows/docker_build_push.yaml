@@ -50,7 +50,7 @@ jobs:
 
   deploy_to_kubernetes:
     # Выполняется только при наличии тега
-    if: startsWith(github.ref, 'refs/tags')
+    # if: startsWith(github.ref, 'refs/tags')
     needs: build_and_publish_docker_image
     runs-on: ubuntu-latest
     steps:
@@ -74,6 +74,7 @@ jobs:
         run: |
           sed -i.bak "s/TEMPLATE_USERNAME/${{ secrets.DOCKER_USERNAME }}/g" deployment.yaml
           sed -i.bak "s/TEMPLATE_TAG/${{ env.DOCKER_TAG }}/g" deployment.yaml
+          cat deployment.yaml
 
       - name: Apply Kubernetes Manifest
         run: |
