@@ -57,6 +57,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Determine Docker tag
+        id: tag
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            # Если это тег, используем его имя (удаляем 'refs/tags/')
+            echo "DOCKER_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          else
+            # Если это коммит без тега, используем первые 8 символов SHA
+            echo "DOCKER_TAG=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+          fi
+          echo "Using tag: $DOCKER_TAG"
+
       - name: Install YC CLI
         run: |
           curl https://storage.yandexcloud.net/yandexcloud-yc/release/0.158.0/linux/amd64/yc -o yc
@@ -72,7 +84,7 @@ jobs:
 
       - name: Replace placeholders in deployment.yaml
         run: |
-          sed -i.bak "s/TEMPLATE_USERNAME/${{ secrets.DOCKER_USERNAME }}/g" deployment.yaml
+          sed -i.bak "s/TEMPLATE_USERNAME/slagovskiy/g" deployment.yaml
           sed -i.bak "s/TEMPLATE_TAG/${{ env.DOCKER_TAG }}/g" deployment.yaml
           cat deployment.yaml
 
