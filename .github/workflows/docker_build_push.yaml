@@ -68,7 +68,7 @@ jobs:
 
       - name: Download kubeconfig
         run: |
-          yc managed-kubernetes cluster get-master-kubeconfig ${{ secrets.KUBE_CLUSTER_NAME }} > kubeconfig.yaml
+          yc managed-kubernetes cluster get-credentials ${{ secrets.KUBE_CLUSTER_NAME }} --external
 
       - name: Replace placeholders in deployment.yaml
         run: |
@@ -77,4 +77,4 @@ jobs:
 
       - name: Apply Kubernetes Manifest
         run: |
-          kubectl apply -f deployment.yaml --kubeconfig=kubeconfig.yaml
+          kubectl apply -f deployment.yaml
